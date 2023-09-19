@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Globe</title>
+  <style> body { margin: 0; } </style>
+  <link href="style.css" rel="stylesheet">
+  <script src="//unpkg.com/three"></script>
+  <script src="//unpkg.com/three-globe"></script>
+  <!--<script src="../../dist/three-globe.js"></script>-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="title">Globe</div>
+
+  <div class="globe" id="globeViz"></div>
+
+
+  <script type="importmap">{ "imports": { "three": "https://unpkg.com/three/build/three.module.js" }}</script>
+  <script type="module">
+    import { TrackballControls } from '//unpkg.com/three/examples/jsm/controls/TrackballControls.js';
+    Object.assign(THREE , { TrackballControls });
+
+    
+    let mouseX = 0;
+    let mouseY = 0;
+    let windowHalfX = window.innerWidth/2;
+    let windowHalfY = window.innerHeight/2;
+    
+    // Setup Globe
+    const Globe = new ThreeGlobe()
+    .globeImageUrl('./image/globe.jpg')
+      Globe.rotateY(-Math.PI*(5/9));
+      Globe.rotateZ(-Math.PI/6);
+      const globeMaterial = Globe.globeMaterial();
+      globeMaterial.emissiveIntensity = 0.1;
+      globeMaterial.shininess = 0.7;
+      globeMaterial.color = new THREE.Color(0x3a228a);
+      globeMaterial.emissive = new THREE.Color(0x220038);
+
+
+    // Setup renderer
+    const renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('globeViz').appendChild(renderer.domElement);
+
+    // Setup scene
+    const scene = new THREE.Scene();
+    scene.add(Globe);
+    scene.add(new THREE.AmbientLight(0xcccccc, Math.PI));
+    scene.add(new THREE.DirectionalLight(0xffffff, 0.6 * Math.PI));
+    scene.background = new THREE.Color("rgb(0,0,0)");
+
+
+   
+
+    // Setup camera
+    const camera = new THREE.PerspectiveCamera();
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    
+    var dLight = new THREE.DirectionalLight(0xfffff, 0.8);
+    dLight.position.set(-800, 2000, 400);
+    camera.add(dLight);
+
+    var dLight1 = new THREE.DirectionalLight(0x7982f6, 1);
+    dLight1.position.set(-200, 500, 200)
+    camera.add(dLight1);
+
+    var dLight2 = new THREE.PointLight(0x8566cc, 0.5);
+    dLight2.position.set(-200, 500, 200);
+    camera.add(dLight2);
+
+    camera.position.z = 400;
+    camera.position.x = 0;
+    camera.position.y = 0;
+
+
+    // Add camera controls
+    const controls = new THREE.TrackballControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dynamicDampingFactor = 0.01;
+    controls.enablePan = false;
+    controls.minDistance = 200;
+    controls.maxDistance = 500;
+    controls.rotateSpeed = 3;
+    controls.zoomSpeed = 1;
+    controls.autoRate = false;
+
+    controls.minPolarAngle = Math.PI/3.5;
+    controls.maxPolarAngle = Math.PI - Math.PI/3;
+
+    window.addEventListener("resize", onWindowResize,false);
+    document.addEventListener("mousemove", onMouseMove);
+
+    function onMouseMove(event) {
+    mouseX = event.clientX - windowHalfX;
+    mouseY = event.clientY - windowHalfY;
+    }
+
+    function onWindowResize() {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    windowHalfX = window.innerWidth/1.5;
+    windowHalfY = window.innerHeight/1.5;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    // Kick-off renderer
+    (function animate() { // IIFE
+      // Frame cycle
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    })();
+  
+    const starGeometry = new THREE.BufferGeometry()
+const starMaterial = new THREE.PointsMaterial({
+    color:0xffffff
+})
+
+const starVertices = []
+for (let i = 0; i < 10000; i++) {
+    const x = (Math.random() - 0.5) * 2000
+    const y = (Math.random() - 0.5) * 2000
+    const z = (Math.random() - 0.5) * 2000
+    starVertices.push(x, y, z)
+}
+
+starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3))
+
+const stars = new THREE.Points(starGeometry, starMaterial)
+scene.add(stars)
+  </script>
+</body>
+</html>
